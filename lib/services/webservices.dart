@@ -5,9 +5,10 @@ import 'package:inspiration/models/spreaker_show_model.dart';
 import 'package:http/http.dart' as http;
 import 'package:inspiration/models/events_model.dart';
 import 'dart:convert';
+import 'dart:async' show TimeoutException;
 
 import 'package:inspiration/models/noa_model.dart';
-import 'package:inspiration/models/noa_new_model.dart';
+import 'package:inspiration/models/noa_new_model.dart' hide Duration;
 import 'package:inspiration/models/oap_stations_model.dart';
 
 
@@ -54,10 +55,23 @@ Future<NowOnAirResponse> getNowOnAirNew(String stationName) async {
 }
 
 Future<List<WelcomeOAPs>> getOAPs(String station) async {
-  final response = await http.get(Uri.parse("http://backend.servoserver.com.ng:80/api/get_oaps?businessLocation=$station"), headers: {"Accept":"application/json"});
-  var convertDataToJson = jsonDecode(response.body);
-  print('oaps: $convertDataToJson');
-  return List<WelcomeOAPs>.from((convertDataToJson).map((x) => WelcomeOAPs.fromJson(x)));
+  try {
+    final response = await http.get(
+      Uri.parse("http://backend.servoserver.com.ng:80/api/get_oaps?businessLocation=$station"), 
+      headers: {"Accept":"application/json"}
+    ).timeout(
+      Duration(seconds: 5),
+      onTimeout: () {
+        throw TimeoutException('Request timeout');
+      },
+    );
+    var convertDataToJson = jsonDecode(response.body);
+    print('oaps: $convertDataToJson');
+    return List<WelcomeOAPs>.from((convertDataToJson).map((x) => WelcomeOAPs.fromJson(x)));
+  } catch (e) {
+    print('Error fetching OAPs: $e');
+    rethrow;
+  }
 }
 
 Future<WelcomeEvent> getEvents() async {

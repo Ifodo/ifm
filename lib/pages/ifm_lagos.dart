@@ -75,20 +75,22 @@ class _IFMLagosState extends State<IFMLagos> {
                               ),
                             ),
                           );
-                        } else if (snapshot.data == null || snapshot.data!.nowOnAir == null) {
-                          return SizedBox(
-                            height: 100,
-                            width: screenWidth / 3,
-                            child: ClipRRect(
-                                borderRadius: BorderRadius.circular(15.0),
-                                child:
-                                    Image.asset(
-                                      'assets/logo_general_small.png'
-                                    )
-                                ),
-                          );
                         }
-                        return const Center(child: CupertinoActivityIndicator());
+                        // Show logo for error or no data
+                        return Padding(
+                          padding: const EdgeInsets.all(10.0),
+                          child: SizedBox(
+                            height: 180,
+                            width: 145,
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(15.0),
+                              child: Image.asset(
+                                'assets/logo_general_small.png',
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                        );
                       },
                     ),
                     Padding(
@@ -170,7 +172,70 @@ class _IFMLagosState extends State<IFMLagos> {
                               ),
                             );
                           }
-                          return const CupertinoActivityIndicator();
+                          // Show dummy content for error or no data
+                          return SizedBox(
+                            width: screenWidth / 2,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Align(
+                                  alignment: Alignment.topRight,
+                                  child: Text('Lagos 92.3 FM',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xffffffff),
+                                          fontSize: 10,
+                                          fontFamily: 'Gotham XLight')),
+                                ),
+                                const Align(
+                                  alignment: Alignment.topRight,
+                                  child: Text('Now On Air',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.w900,
+                                          color: Color(0xffffffff),
+                                          fontSize: 20,
+                                          fontFamily: 'Gotham XLight')),
+                                ),
+                                const SizedBox(height: 5.0),
+                                const Align(
+                                  alignment: Alignment.topRight,
+                                  child: Text(
+                                    'Stay Tuned',
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 2,
+                                    style: TextStyle(
+                                        fontSize: 17.0,
+                                        color: Color(0xffffffff),
+                                        fontFamily: 'Gotham XLight',
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                const SizedBox(height: 5.0),
+                                const Align(
+                                  alignment: Alignment.topRight,
+                                  child: Text(
+                                    'with Inspiration FM',
+                                    style: TextStyle(
+                                        fontSize: 11.0,
+                                        color: Color(0xffffffff),
+                                        fontFamily: 'Gotham XLight',
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                                const Align(
+                                  alignment: Alignment.topRight,
+                                  child: Text(
+                                    'Duration: -- : --',
+                                    style: TextStyle(
+                                        fontSize: 11.0,
+                                        color: Color(0xffffffff),
+                                        fontFamily: 'Gotham XLight'),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
                         },
                       ),
                     ),
