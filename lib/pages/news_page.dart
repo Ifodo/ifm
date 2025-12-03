@@ -14,6 +14,38 @@ class NewsPage extends StatefulWidget {
 }
 
 class _NewsPageState extends State<NewsPage> {
+  // Get dummy news data
+  List<Map<String, dynamic>> _getDummyNews() {
+    final now = DateTime.now();
+    return [
+      {
+        'title': 'Stay Tuned for Latest Updates',
+        'date': GetTimeAgo.parse(now.subtract(const Duration(hours: 2))),
+        'imageUrl': null,
+      },
+      {
+        'title': 'Inspiration FM Bringing You the Best',
+        'date': GetTimeAgo.parse(now.subtract(const Duration(hours: 5))),
+        'imageUrl': null,
+      },
+      {
+        'title': 'Check Back Soon for More News',
+        'date': GetTimeAgo.parse(now.subtract(const Duration(days: 1))),
+        'imageUrl': null,
+      },
+      {
+        'title': 'Your Source for Quality Content',
+        'date': GetTimeAgo.parse(now.subtract(const Duration(days: 2))),
+        'imageUrl': null,
+      },
+      {
+        'title': 'More News Coming Soon',
+        'date': GetTimeAgo.parse(now.subtract(const Duration(days: 3))),
+        'imageUrl': null,
+      },
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     var screenWidth = MediaQuery.of(context).size.width;
@@ -41,11 +73,33 @@ class _NewsPageState extends State<NewsPage> {
                       height: 168,
                       width: screenWidth,
                       color: Colors.transparent,
-                      //child: NOAPicture(),
                       child: FutureBuilder<List>(
                         future: fetchWpPost(),
                         builder: (context, snapshot){
-                          if(snapshot.hasData){
+                          // Handle error or empty data
+                          if (snapshot.hasError || 
+                              (snapshot.hasData && (snapshot.data == null || snapshot.data!.isEmpty))) {
+                            // Show dummy image
+                            return SizedBox(
+                              height: 168,
+                              width: screenWidth,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(15.0),
+                                child: Container(
+                                  color: const Color(0xff264796).withOpacity(0.1),
+                                  child: const Center(
+                                    child: Icon(
+                                      Icons.newspaper_rounded,
+                                      color: Color(0xff264796),
+                                      size: 48,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          }
+                          
+                          if(snapshot.hasData && snapshot.data!.isNotEmpty){
                             print('tttttss: $snapshot');
                             return ListView.builder(
                               physics: const NeverScrollableScrollPhysics(),
@@ -53,25 +107,58 @@ class _NewsPageState extends State<NewsPage> {
                                 shrinkWrap: true,
                                 itemCount: snapshot.data!.length,
                                 itemBuilder: (context, index){
-                                  Map wpPost = snapshot.data![index];
-                                  var imageUrl = wpPost['_embedded']['wp:featuredmedia'][0]['source_url'];
-                                  print('ttttttttt: $wpPost');
-                                  return SizedBox(
-                                    height: 168,
-                                    width: screenWidth,
-                                    child: ClipRRect(
-                                      borderRadius: BorderRadius.circular(15.0),
-                                      child: FadeInImage.assetNetwork(
-                                        //height: 180,
-                                        //width: screenWidth,
-                                        placeholder: cupertinoActivityIndicator,
-                                        image: imageUrl,
-                                        placeholderScale: 1,
-                                        fit: BoxFit.cover,
+                                  try {
+                                    Map wpPost = snapshot.data![index];
+                                    var imageUrl = wpPost['_embedded']?['wp:featuredmedia']?[0]?['source_url'];
+                                    print('ttttttttt: $wpPost');
+                                    return SizedBox(
+                                      height: 168,
+                                      width: screenWidth,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(15.0),
+                                        child: Image.network(
+                                          imageUrl ?? '',
+                                          fit: BoxFit.cover,
+                                          loadingBuilder: (context, child, loadingProgress) {
+                                            if (loadingProgress == null) return child;
+                                            return const Center(
+                                              child: CupertinoActivityIndicator(),
+                                            );
+                                          },
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              color: const Color(0xff264796).withOpacity(0.1),
+                                              child: const Center(
+                                                child: Icon(
+                                                  Icons.newspaper_rounded,
+                                                  color: Color(0xff264796),
+                                                  size: 48,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
                                       ),
-                                      //Image.asset(circularProgressIndicator, scale: 10),
-                                    ),
-                                  );
+                                    );
+                                  } catch (e) {
+                                    return SizedBox(
+                                      height: 168,
+                                      width: screenWidth,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(15.0),
+                                        child: Container(
+                                          color: const Color(0xff264796).withOpacity(0.1),
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.newspaper_rounded,
+                                              color: Color(0xff264796),
+                                              size: 48,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
                                 });
                           }
                           return const Center(child: CupertinoActivityIndicator());
@@ -86,14 +173,13 @@ class _NewsPageState extends State<NewsPage> {
                           child: FutureBuilder<List>(
                             future: fetchWpPost(),
                             builder: (context, snapshot){
-                              if(snapshot.hasData){
-                                return ListView.builder(
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    scrollDirection: Axis.vertical,
-                                    //shrinkWrap: true,
-                                    itemCount: snapshot.data!.length,
-                                    itemBuilder: (context, index){
-                                  Map wpPost = snapshot.data![index];
+                              // Handle error or empty data
+                              if (snapshot.hasError || 
+                                  (snapshot.hasData && (snapshot.data == null || snapshot.data!.isEmpty))) {
+                                // Show dummy title and date
+                                final dummyNews = _getDummyNews();
+                                if (dummyNews.isNotEmpty) {
+                                  final news = dummyNews[0];
                                   return SizedBox(
                                     width: screenWidth,
                                     child: Column(
@@ -101,9 +187,7 @@ class _NewsPageState extends State<NewsPage> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          parse(wpPost['title']['rendered'])
-                                              .documentElement!
-                                              .text,
+                                          news['title'],
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 2,
                                           style: const TextStyle(
@@ -113,7 +197,7 @@ class _NewsPageState extends State<NewsPage> {
                                         ),
                                         const SizedBox(height: 3.0),
                                         Text(
-                                          GetTimeAgo.parse(DateTime.parse(wpPost['date'])),
+                                          news['date'],
                                           style: const TextStyle(
                                             fontSize: 11.0,
                                             color: Color(0xffff0002),
@@ -123,8 +207,82 @@ class _NewsPageState extends State<NewsPage> {
                                       ],
                                     ),
                                   );
+                                }
+                                return const SizedBox.shrink();
+                              }
+                              
+                              if(snapshot.hasData && snapshot.data!.isNotEmpty){
+                                return ListView.builder(
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    scrollDirection: Axis.vertical,
+                                    itemCount: snapshot.data!.length,
+                                    itemBuilder: (context, index){
+                                  try {
+                                    Map wpPost = snapshot.data![index];
+                                    return SizedBox(
+                                      width: screenWidth,
+                                      child: Column(
+                                        mainAxisAlignment: MainAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            parse(wpPost['title']['rendered'])
+                                                .documentElement!
+                                                .text,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 2,
+                                            style: const TextStyle(
+                                                fontSize: 17.0,
+                                                color: Color(0xff2a166f),
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          const SizedBox(height: 3.0),
+                                          Text(
+                                            GetTimeAgo.parse(DateTime.parse(wpPost['date'])),
+                                            style: const TextStyle(
+                                              fontSize: 11.0,
+                                              color: Color(0xffff0002),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 10.0)
+                                        ],
+                                      ),
+                                    );
+                                  } catch (e) {
+                                    final dummyNews = _getDummyNews();
+                                    if (dummyNews.isNotEmpty) {
+                                      final news = dummyNews[0];
+                                      return SizedBox(
+                                        width: screenWidth,
+                                        child: Column(
+                                          mainAxisAlignment: MainAxisAlignment.start,
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              news['title'],
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 2,
+                                              style: const TextStyle(
+                                                  fontSize: 17.0,
+                                                  color: Color(0xff2a166f),
+                                                  fontWeight: FontWeight.bold),
+                                            ),
+                                            const SizedBox(height: 3.0),
+                                            Text(
+                                              news['date'],
+                                              style: const TextStyle(
+                                                fontSize: 11.0,
+                                                color: Color(0xffff0002),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 10.0)
+                                          ],
+                                        ),
+                                      );
+                                    }
+                                    return const SizedBox.shrink();
+                                  }
                                 });
-
                               }
                               return const CupertinoActivityIndicator();
                             },
@@ -144,155 +302,405 @@ class _NewsPageState extends State<NewsPage> {
                 child: FutureBuilder<List>(
                   future: fetchWpPost(),
                   builder: (context, snapshot) {
-                    if (snapshot.hasData) {
-              return ListView.builder(
-                itemCount: snapshot.data!.length,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.only(bottom: 16.0),
-                itemBuilder: (context, index) {
-                          Map wpPost = snapshot.data![index];
-                          var imageUrl = wpPost['_embedded']['wp:featuredmedia'][0]['source_url'];
-                          return InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => NewsArticle(
-                                      url: wpPost['link'],
-                                      title: wpPost['title']['rendered'],
-                                      date: wpPost['date'],
-                                      content: wpPost['content']['rendered'],
-                                      imageUrl: wpPost['_embedded']
-                                      ['wp:featuredmedia'][0]['source_url'] ?? '',
-                                    )
-                                  )
-                              );
-                            },
-
-                            child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    Colors.white,
-                                    Color(0xFFF8F9FF),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(16.0),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xff264796).withOpacity(0.08),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                    spreadRadius: 0,
-                                  ),
+                    // Handle error or empty data
+                    if (snapshot.hasError || 
+                        (snapshot.hasData && (snapshot.data == null || snapshot.data!.isEmpty))) {
+                      // Show dummy news list
+                      final dummyNews = _getDummyNews();
+                      return ListView.builder(
+                        itemCount: dummyNews.length,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        itemBuilder: (context, index) {
+                          final news = dummyNews[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  Colors.white,
+                                  Color(0xFFF8F9FF),
                                 ],
-                                border: Border.all(
-                                  color: const Color(0xff264796).withOpacity(0.1),
-                                  width: 1,
-                                ),
                               ),
-                              child: Row(
-                                children: [
-                                  // Image
-                                  Container(
-                                    width: 100,
-                                    height: 100,
-                                    decoration: BoxDecoration(
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(16.0),
-                                        bottomLeft: Radius.circular(16.0),
+                              borderRadius: BorderRadius.circular(16.0),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(0xff264796).withOpacity(0.08),
+                                  blurRadius: 12,
+                                  offset: const Offset(0, 4),
+                                  spreadRadius: 0,
+                                ),
+                              ],
+                              border: Border.all(
+                                color: const Color(0xff264796).withOpacity(0.1),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                // Image
+                                Container(
+                                  width: 100,
+                                  height: 100,
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(16.0),
+                                      bottomLeft: Radius.circular(16.0),
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.1),
+                                        blurRadius: 8,
+                                        offset: const Offset(2, 0),
                                       ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 8,
-                                          offset: const Offset(2, 0),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(16.0),
+                                      bottomLeft: Radius.circular(16.0),
+                                    ),
+                                    child: Container(
+                                      color: const Color(0xff264796).withOpacity(0.1),
+                                      child: const Icon(
+                                        Icons.newspaper_rounded,
+                                        color: Color(0xff264796),
+                                        size: 32,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                
+                                // Content
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12.0),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          news['title'],
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 2,
+                                          style: const TextStyle(
+                                              fontSize: 13.0,
+                                              color: Color(0xff2a166f),
+                                              fontFamily: 'Gotham XLight',
+                                              fontWeight: FontWeight.bold,
+                                              height: 1.4,
+                                              letterSpacing: -0.2,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.schedule_rounded,
+                                              size: 14,
+                                              color: Colors.grey.shade600,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                news['date'],
+                                                style: TextStyle(
+                                                    fontSize: 11.0,
+                                                    color: Colors.grey.shade600,
+                                                    fontFamily: 'Gotham XLight',
+                                                    fontWeight: FontWeight.w500
+                                                ),
+                                              ),
+                                            ),
+                                            Icon(
+                                              Icons.arrow_forward_ios_rounded,
+                                              size: 14,
+                                              color: const Color(0xff264796).withOpacity(0.5),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
-                                    child: ClipRRect(
-                                      borderRadius: const BorderRadius.only(
-                                        topLeft: Radius.circular(16.0),
-                                        bottomLeft: Radius.circular(16.0),
-                                      ),
-                                      child: Image.network(
-                                        imageUrl ?? '',
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return Container(
-                                            color: const Color(0xff264796).withOpacity(0.1),
-                                            child: const Icon(
-                                              Icons.newspaper_rounded,
-                                              color: Color(0xff264796),
-                                              size: 32,
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ),
                                   ),
-                                  
-                                  // Content
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12.0),
-                                      child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            parse(wpPost['title']['rendered'])
-                                                .documentElement!
-                                                .text,
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            style: const TextStyle(
-                                                fontSize: 13.0,
-                                                color: Color(0xff2a166f),
-                                                fontFamily: 'Gotham XLight',
-                                                fontWeight: FontWeight.bold,
-                                                height: 1.4,
-                                                letterSpacing: -0.2,
-                                            ),
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.schedule_rounded,
-                                                size: 14,
-                                                color: Colors.grey.shade600,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Expanded(
-                                                child: Text(
-                                                  GetTimeAgo.parse(DateTime.parse(wpPost['date'])),
-                                                  style: TextStyle(
-                                                      fontSize: 11.0,
-                                                      color: Colors.grey.shade600,
-                                                      fontFamily: 'Gotham XLight',
-                                                      fontWeight: FontWeight.w500
-                                                  ),
-                                                ),
-                                              ),
-                                              Icon(
-                                                Icons.arrow_forward_ios_rounded,
-                                                size: 14,
-                                                color: const Color(0xff264796).withOpacity(0.5),
-                                              ),
-                                            ],
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    }
+                    
+                    if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                      return ListView.builder(
+                        itemCount: snapshot.data!.length,
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.only(bottom: 16.0),
+                        itemBuilder: (context, index) {
+                          try {
+                            Map wpPost = snapshot.data![index];
+                            var imageUrl = wpPost['_embedded']?['wp:featuredmedia']?[0]?['source_url'];
+                            return InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => NewsArticle(
+                                        url: wpPost['link'],
+                                        title: wpPost['title']['rendered'],
+                                        date: wpPost['date'],
+                                        content: wpPost['content']['rendered'],
+                                        imageUrl: imageUrl ?? '',
+                                      )
+                                    )
+                                );
+                              },
+
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.white,
+                                      Color(0xFFF8F9FF),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xff264796).withOpacity(0.08),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                      spreadRadius: 0,
+                                    ),
+                                  ],
+                                  border: Border.all(
+                                    color: const Color(0xff264796).withOpacity(0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Image
+                                    Container(
+                                      width: 100,
+                                      height: 100,
+                                      decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(16.0),
+                                          bottomLeft: Radius.circular(16.0),
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.1),
+                                            blurRadius: 8,
+                                            offset: const Offset(2, 0),
                                           ),
                                         ],
                                       ),
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(16.0),
+                                          bottomLeft: Radius.circular(16.0),
+                                        ),
+                                        child: Image.network(
+                                          imageUrl ?? '',
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              color: const Color(0xff264796).withOpacity(0.1),
+                                              child: const Icon(
+                                                Icons.newspaper_rounded,
+                                                color: Color(0xff264796),
+                                                size: 32,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ],
+                                    
+                                    // Content
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              parse(wpPost['title']['rendered'])
+                                                  .documentElement!
+                                                  .text,
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 2,
+                                              style: const TextStyle(
+                                                  fontSize: 13.0,
+                                                  color: Color(0xff2a166f),
+                                                  fontFamily: 'Gotham XLight',
+                                                  fontWeight: FontWeight.bold,
+                                                  height: 1.4,
+                                                  letterSpacing: -0.2,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.schedule_rounded,
+                                                  size: 14,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Expanded(
+                                                  child: Text(
+                                                    GetTimeAgo.parse(DateTime.parse(wpPost['date'])),
+                                                    style: TextStyle(
+                                                        fontSize: 11.0,
+                                                        color: Colors.grey.shade600,
+                                                        fontFamily: 'Gotham XLight',
+                                                        fontWeight: FontWeight.w500
+                                                    ),
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  Icons.arrow_forward_ios_rounded,
+                                                  size: 14,
+                                                  color: const Color(0xff264796).withOpacity(0.5),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          } catch (e) {
+                            // If there's an error parsing individual item, show dummy
+                            final dummyNews = _getDummyNews();
+                            if (index < dummyNews.length) {
+                              final news = dummyNews[index];
+                              return Container(
+                                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 6.0),
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Colors.white,
+                                      Color(0xFFF8F9FF),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(16.0),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xff264796).withOpacity(0.08),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                      spreadRadius: 0,
+                                    ),
+                                  ],
+                                  border: Border.all(
+                                    color: const Color(0xff264796).withOpacity(0.1),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 100,
+                                      height: 100,
+                                      decoration: BoxDecoration(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(16.0),
+                                          bottomLeft: Radius.circular(16.0),
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(0.1),
+                                            blurRadius: 8,
+                                            offset: const Offset(2, 0),
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: const BorderRadius.only(
+                                          topLeft: Radius.circular(16.0),
+                                          bottomLeft: Radius.circular(16.0),
+                                        ),
+                                        child: Container(
+                                          color: const Color(0xff264796).withOpacity(0.1),
+                                          child: const Icon(
+                                            Icons.newspaper_rounded,
+                                            color: Color(0xff264796),
+                                            size: 32,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(12.0),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              news['title'],
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 2,
+                                              style: const TextStyle(
+                                                  fontSize: 13.0,
+                                                  color: Color(0xff2a166f),
+                                                  fontFamily: 'Gotham XLight',
+                                                  fontWeight: FontWeight.bold,
+                                                  height: 1.4,
+                                                  letterSpacing: -0.2,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.schedule_rounded,
+                                                  size: 14,
+                                                  color: Colors.grey.shade600,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Expanded(
+                                                  child: Text(
+                                                    news['date'],
+                                                    style: TextStyle(
+                                                        fontSize: 11.0,
+                                                        color: Colors.grey.shade600,
+                                                        fontFamily: 'Gotham XLight',
+                                                        fontWeight: FontWeight.w500
+                                                    ),
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  Icons.arrow_forward_ios_rounded,
+                                                  size: 14,
+                                                  color: const Color(0xff264796).withOpacity(0.5),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          }
                         },
                       );
                     }

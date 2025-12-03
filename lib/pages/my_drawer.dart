@@ -87,7 +87,7 @@ class MyDrawer extends StatelessWidget {
                             leading: const Icon(Icons.people_outline_outlined, color: Colors.white),
                             title: const Text('On Air Personalities', style: TextStyle(color: Colors.white)),
                             onTap: () => onTap!(context, 5)),
-                        ListTile(
+                        /*ListTile(
                             visualDensity: const VisualDensity(horizontal: 0, vertical: -2.5),
                             leading: const Icon(Icons.event_outlined, color: Colors.white),
                             title: const Text('Events', style: TextStyle(color: Colors.white)),
@@ -96,7 +96,7 @@ class MyDrawer extends StatelessWidget {
                             visualDensity: const VisualDensity(horizontal: 0, vertical: -2.5),
                             leading: const Icon(Icons.question_answer, color: Colors.white),
                             title: const Text('Quiz', style: TextStyle(color: Colors.white)),
-                            onTap: () => onTap!(context, 7)),
+                            onTap: () => onTap!(context, 7)),*/
                         /*ListTile(
                             visualDensity: VisualDensity(horizontal: 0, vertical: -2.5),
                             leading: Icon(Icons.phone_in_talk_outlined, color: Colors.white),
